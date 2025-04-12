@@ -1,0 +1,74 @@
+function calculateRowData(sheet, lastRow) {
+  if (!sheet || typeof sheet.getRange !== 'function') {
+    console.error("Invalid sheet object:", sheet);
+    throw new TypeError("Invalid sheet object passed to calculateRowData");
+  }
+
+  // Fetch values
+  const value8 = sheet.getRange(lastRow, 8).getValue(); // Amount input
+  let value9 = sheet.getRange(lastRow, 9).getValue(); // Could be amount or percentage
+  let value10 = sheet.getRange(lastRow, 10).getValue(); // Could be amount or percentage
+
+  if (value8 === null || value9 === null || value10 === null) {
+    console.warn(`Missing input at row ${lastRow}. Values:`, { value8, value9, value10 });
+    return;
+  }
+
+  // Refined logic to detect percentage vs amount for column 9
+  const isPercentage9 = value9 <= 100;
+  if (isPercentage9) {
+    console.log(`Detected percentage input for value9 (${value9}). Converting to decimal.`);
+    value9 /= 100;
+  } else {
+    console.log(`Detected amount input for value9: ${value9}`);
+  }
+
+  // Refined logic to detect percentage vs amount for column 10
+  const isPercentage10 = value10 <= 100;
+  if (isPercentage10) {
+    console.log(`Detected percentage input for value10 (${value10}). Converting to decimal.`);
+    value10 /= 100;
+  } else {
+    console.log(`Detected amount input for value10: ${value10}`);
+  }
+
+  // Calculate Gross Commission
+  const grossCommission = isPercentage9 ? value8 * value9 : value9;
+  sheet.getRange(lastRow, 11).setValue(grossCommission);
+
+  // Calculate Franchise Commission
+  const franchiseCommission = isPercentage10
+    ? grossCommission * (1 - value10)
+    : grossCommission - value10;
+  sheet.getRange(lastRow, 11).setValue(franchiseCommission);
+
+  // Calculate Franchise Fee
+  const franchiseFee = franchiseCommission * 0.06;
+  sheet.getRange(lastRow, 12).setValue(franchiseFee);
+
+  // Dynamic formatting for columns 9 and 10
+  const format9 = isPercentage9 ? "0.00%" : "#,##0.00";
+  sheet.getRange(lastRow, 9).setNumberFormat(format9).setValue(value9);
+
+  const format10 = isPercentage10 ? "0.00%" : "#,##0.00";
+  sheet.getRange(lastRow, 10).setNumberFormat(format10).setValue(value10);
+
+  // Format currency columns
+  formatCurrencyColumns(sheet, lastRow, [8, 11, 12]);
+
+  console.log(
+    `Row ${lastRow} updated: Gross Commission = ${grossCommission}, Franchise Commission = ${franchiseCommission}, Franchise Fee = ${franchiseFee}`
+  );
+}
+
+function formatCurrencyColumns(sheet, row, columns) {
+  if (!sheet || typeof sheet.getRange !== 'function') {
+    throw new TypeError("Invalid sheet object passed to formatCurrencyColumns");
+  }
+
+  columns.forEach(function (col) {
+    sheet.getRange(row, col).setNumberFormat("$#,##0.00");
+  });
+
+  console.log(`Formatted columns ${columns.join(", ")} at row ${row} to currency.`);
+}
