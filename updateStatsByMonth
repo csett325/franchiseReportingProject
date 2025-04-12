@@ -1,0 +1,64 @@
+function updateStatsByMonth(spreadsheet) {
+  console.log("Updating stats by month...");
+
+  const statsSheet = spreadsheet.getSheetByName("Form Responses 1");
+  if (!statsSheet) {
+    console.error("Error: 'Form Responses 1' sheet not found.");
+    return;
+  }
+
+  let statsByMonthSheet = spreadsheet.getSheetByName("Stats by Month");
+  if (!statsByMonthSheet) {
+    console.log("'Stats by Month' sheet not found. Creating it now...");
+    statsByMonthSheet = createStatsByMonthSheet(spreadsheet);
+
+    // Add medium-sized drawing in columns H–I, rows 2–5 after creating the sheet
+    addCalculateButton(statsByMonthSheet);
+  }
+
+  const lastRow = statsSheet.getLastRow();
+  if (lastRow < 2) {
+    console.log("No data to process in 'Form Responses 1'.");
+    return;
+  }
+
+  const dateColumnValues = statsSheet.getRange(2, 7, lastRow - 1).getValues();
+  console.log("Date column values retrieved:", dateColumnValues);
+
+  // Call updateMonthlyStats from the separate file
+  updateMonthlyStats(statsByMonthSheet, statsSheet, dateColumnValues);
+}
+
+function createStatsByMonthSheet(spreadsheet) {
+  console.log("Creating 'Stats by Month' sheet...");
+  
+  const sheet = spreadsheet.insertSheet("Stats by Month");
+  sheet.appendRow(["Month", "Volume", "GCI Total", "Franchise Fee Total", "Start", "End"]);
+
+  const months = [
+    "January", "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const year = 2025;
+
+  months.forEach((month, i) => {
+    const startDate = new Date(year, i, 1);
+    const endDate = new Date(year, i + 1, 0); // Last day of the month
+    sheet.appendRow([month, "", "", "", startDate, endDate]);
+  });
+
+  console.log("'Stats by Month' sheet created successfully.");
+  return sheet;
+}
+
+function addCalculateButton(sheet) {
+  console.log("Adding 'Calculate' button...");
+  
+  const imageUrl = "https://raw.githubusercontent.com/csett325/calculate-button/2c09d7d52201df44a700166dd0cd6056a22415d3/Calculate%20Image.png"; // Placeholder image with "Calculate"
+  const buttonImage = sheet.insertImage(imageUrl, 8, 2); // Position at column H, row 2
+
+  buttonImage.setWidth(120); // Set width
+  buttonImage.setHeight(60); // Set height
+
+  console.log("'Calculate' button added successfully.");
+}
