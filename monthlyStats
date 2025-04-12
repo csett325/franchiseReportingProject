@@ -1,0 +1,58 @@
+function updateMonthlyStats(statsByMonthSheet, statsSheet, dateColumnValues) {
+  console.log("Updating monthly statistics...");
+
+  const lastRow = 13; // Rows 2–13 are monthly data, Row 14 is "Total"
+  let totalVolume = 0;
+  let totalGCI = 0;
+  let totalFranchiseFee = 0;
+
+  // Reset the "Total" row to prevent accidental overwrites
+  statsByMonthSheet.getRange(14, 1, 1, 4).clearContent();
+
+  // Calculate monthly totals (excluding "Total" row)
+  for (let i = 2; i <= lastRow; i++) {
+    const startDate = statsByMonthSheet.getRange(i, 5).getValue();
+    const endDate = statsByMonthSheet.getRange(i, 6).getValue();
+
+    if (startDate && endDate) {
+      const volumeTotal = sumIfs(statsSheet, 8, dateColumnValues, startDate, endDate);
+      const gciTotal = sumIfs(statsSheet, 11, dateColumnValues, startDate, endDate);
+      const franchiseFeeTotal = sumIfs(statsSheet, 12, dateColumnValues, startDate, endDate);
+
+      // Update monthly totals for the specific row
+      statsByMonthSheet.getRange(i, 2).setValue(volumeTotal);
+      statsByMonthSheet.getRange(i, 3).setValue(gciTotal);
+      statsByMonthSheet.getRange(i, 4).setValue(franchiseFeeTotal);
+
+      // Accumulate totals for the "Total" row
+      totalVolume += volumeTotal;
+      totalGCI += gciTotal;
+      totalFranchiseFee += franchiseFeeTotal;
+
+      console.log(`Month row ${i} - Volume: ${volumeTotal}, GCI: ${gciTotal}, Franchise Fee: ${franchiseFeeTotal}`);
+    }
+  }
+
+  // Write "Total" label and grand totals explicitly to the "Total" row
+  statsByMonthSheet.getRange(14, 1).setValue("Total");
+  statsByMonthSheet.getRange(14, 2).setValue(totalVolume);
+  statsByMonthSheet.getRange(14, 3).setValue(totalGCI);
+  statsByMonthSheet.getRange(14, 4).setValue(totalFranchiseFee);
+
+  // Format the "Total" row
+  statsByMonthSheet.getRange(14, 1, 1, 4).setFontWeight("bold");
+  statsByMonthSheet.getRange(14, 2, 1, 3).setNumberFormat("$#,##0.00");
+
+  // Format rows 2–13 as currency for columns B–D
+  statsByMonthSheet.getRange(2, 2, 12, 3).setNumberFormat("$#,##0.00");
+
+  const solidStyle = SpreadsheetApp.BorderStyle.SOLID;
+  const doubleStyle = SpreadsheetApp.BorderStyle.DOUBLE;
+
+  // Add single line above and double line below the "Total" row
+  statsByMonthSheet.getRange(13, 1, 1, 4).setBorder(false, false, true, false, false, false, "black", solidStyle);
+  statsByMonthSheet.getRange(14, 1, 1, 4).setBorder(true, false, false, false, false, false, "black", doubleStyle);
+
+
+  console.log(`Final Totals - Volume: ${totalVolume}, GCI: ${totalGCI}, Franchise Fee: ${totalFranchiseFee}`);
+}
