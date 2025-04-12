@@ -1,0 +1,22 @@
+function onFormSubmit(e) {
+  const spreadsheet = e.source; // Get the Spreadsheet object
+  const sheetName = "Form Responses 1"; // Replace with your actual sheet name
+  const sheet = spreadsheet.getSheetByName(sheetName); // Explicitly fetch the sheet
+  
+  // Debugging: Log the sheet name and object
+  console.log("Fetched sheet:", sheetName);
+  console.log("Sheet object:", sheet);
+
+  if (!sheet) {
+    console.error(`Sheet named "${sheetName}" not found.`);
+    return;
+  }
+
+  const lastRow = sheet.getLastRow();
+
+  // Pass the correct sheet object
+  calculateRowData(sheet, lastRow);
+
+  ensureHeaders(sheet);
+  updateStatsByMonth(spreadsheet);
+}
