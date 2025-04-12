@@ -1,0 +1,2 @@
+const SHEET_FORM_RESPONSES = "Form Responses 1";
+const SHEET_STATS_BY_MONTH = "Stats by Month";
