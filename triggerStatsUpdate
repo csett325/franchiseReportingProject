@@ -1,0 +1,18 @@
+function triggerStatsUpdate() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  console.log("Running triggerStatsUpdate...");
+  
+  // Check if spreadsheet and sheets exist
+  if (!spreadsheet) {
+    console.error("No active spreadsheet found.");
+    return;
+  }
+  
+  // Call the update function
+  try {
+    updateStatsByMonth(spreadsheet);
+    console.log("Update completed successfully.");
+  } catch (error) {
+    console.error("Error in triggerStatsUpdate:", error);
+  }
+}
